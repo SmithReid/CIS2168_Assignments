@@ -11,7 +11,6 @@ public class Rabbit extends Animal {
     }
 
     int checkAndMove(int base, int[] possibleMoves) {
-        System.out.println("Start: checkAndMove()");
         int i = 0;
         int intendedDirection = Model.turn(base, possibleMoves[i]);
         while (!canMove(intendedDirection)) {
@@ -21,7 +20,6 @@ public class Rabbit extends Animal {
             }
             intendedDirection = Model.turn(base, possibleMoves[i]);
         }
-        System.out.println("Moving: " + intendedDirection);
         return intendedDirection;
     }
     
@@ -44,10 +42,8 @@ public class Rabbit extends Animal {
         }
         if (haveSeenFox) {
             if (adjacentToWall) {
-                System.out.println("Adjacent to wall.");
                 return checkAndMove(lastDirectionToAdjacentWall, new int[] {2, 6, 4, 1, 3, 5, 7, 0});
             }
-            System.out.println("NOT adjacent to wall.");
             return checkAndMove(lastDirectionToFox, new int[] {3, 5, 1, 7, 2, 4, 6, 0});
         }
         return Model.STAY;
