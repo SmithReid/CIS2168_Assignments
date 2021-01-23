@@ -1,6 +1,9 @@
-// @author Reid Smith
-// Version began 1/23/2020
-// Version 1.1 (Significant restart using much of the structure of 1.0)
+//Code Written by Reid Smith
+// Version began 1/22/2021
+// Version 1.0
+
+// TODO: fix movement re rabbitRow and rabbitColumn 
+// TODO: implement rabbit tracking on board
 
 import java.util.HashMap;
 import java.lang.Integer;
@@ -10,10 +13,37 @@ import java.util.Arrays; // debugging only likely
 public class Rabbit extends Animal {
     private int turnNumber = -1;
 
-    private int[][] board = new board[20][20];
+    private boolean haveSeenFox = false;
+    private int lastDirectionToFox = 0;
+
+    private HashMap<Integer, Integer> visibleMap = new HashMap<>();
+    private HashMap<Integer, Integer> distanceMap = new HashMap<>();
+
+    private boolean rabbitCorner;
+    private boolean rabbitEdge;
+
+    private boolean locationKnown = false;
+    private int rabbitRow = Integer.MAX_VALUE;
+    private int rabbitColumn = Integer.MAX_VALUE;
+
+    /* When we collectData each step, 
+
+    4s will denote empty
+
+    0s will denote unknown
+    1s will denote FOX
+    2s will denote RABBIT
+    3s will denote BUSHes
+    */
+    private int[][] board = new int[20][20];
 
     public Rabbit(Model model, int row, int column) {
         super(model, row, column);
+        for (int i = 0; i < 20; i++) {
+            for (int j = 0; j < 20; j++) {
+                board[i][j] = 0;
+            }
+        }
     }
 
     private String boardToString() {
@@ -72,6 +102,21 @@ public class Rabbit extends Animal {
         if (rabbitRow < Integer.MAX_VALUE && rabbitColumn < Integer.MAX_VALUE) {
             locationKnown = true;
             board[rabbitRow][rabbitColumn] = 2;
+        }
+    }
+
+    private void updateBoard() {
+        for (int i = 0; i < 8; i++) {
+            int[] deltas = getDirections(i);
+            int yStep = deltas[0];
+            int xStep = deltas[1];
+
+            for (int j = 0; j < distanceMap.get(i); j++) {
+                board[rabbitRow + j * xStep][rabbitColumn + j * yStep] = 4;
+            }
+            if (visibleMap.get(i) != Model.EDGE) {
+                board[rabbitRow + distanceMap.get(i) * xStep][rabbitColumn + distanceMap.get(i) * yStep] = visibleMap.get(i);
+            }
         }
     }
 
@@ -151,7 +196,71 @@ public class Rabbit extends Animal {
         return possibleMoves[i];
     }
 
-    int decideMove() {
+    private int moveToCorner() {
+        if (rabbitEdge && !rabbitCorner) {
+            int directionToAdjacentEdge = 0;
+            for (int i = 0; i < 8; i += 2) {
+                if (visibleMap.get(i) == 4 && distanceMap.get(i) == 1) {
+                    directionToAdjacentEdge = i;
+                }
+            }
+            if (distanceMap.get((directionToAdjacentEdge) + 2) - (distanceMap.get(directionToAdjacentEdge) + 6) > 0) {
+                return turnAndMove(directionToAdjacentEdge, new int[] {6, 5, 7, 4, 0, 3, 1, 2});
+            } else {
+                return turnAndMove(directionToAdjacentEdge, new int[] {2, 1, 3, 4, 0, 1, 3, 6});
+            }
+        } else if (rabbitCorner) {
+            return Model.STAY;
+        } else {
+            if (rabbitRow <= 9 && rabbitColumn <= 9) {
+                return checkAndMove(new int[] {7, 0, 6, 5, 1, 4, 2, 3});
+            } else if (rabbitRow >= 10 && rabbitColumn <= 9) {
+                return checkAndMove(new int[] {5, 4, 6, 7, 3, 0, 2, 1});
+            } else if (rabbitRow <= 9 && rabbitColumn >= 10) {
+                return checkAndMove(new int[] {1, 0, 2, 3, 7, 4, 6, 5});
+            } else {
+                return checkAndMove(new int[] {3, 2, 4, 1, 5, 6, 0, 7});
+            }
+        }
+    }
 
+    private int moveAlongEdge() {
+        for (int i = 0; i < 8; i += 2) {
+            if (distanceMap.get(i) > 1 && visibleMap.get(i) != 1) {
+                return i;
+            }
+        }
+    }
+
+    private int moveAwayFromCorner() {
+        return random(0, 8);
+    }
+
+    int decideMove() {
+        System.out.println("(" + rabbitRow + ", " + rabbitColumn + ")");
+        System.out.println(boardToString());
+
+        turnNumber++;
+        if (!locationKnown) {
+            locateRabbit();
+        }
+        if (!locationKnown) {
+            return random(0, 8);
+        } else {
+            for (int i = 0; i < 8; i++) {
+                collectData(i);
+            }
+            updateBoard();
+            setEdgesAndCorners();
+            if (!haveSeenFox) {
+                return moveToCorner();
+            } else {
+                if (rabbitCorner) {
+                    return moveAlongEdge();
+                } else {
+                    return turnAndMove(lastDirectionToFox, new int[] {3, 5, 4, 2, 6, 1, 7, 0});
+                }
+            }
+        }
     }
 }
