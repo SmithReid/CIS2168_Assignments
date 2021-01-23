@@ -7,6 +7,16 @@ import java.lang.Integer;
 
 import java.util.Arrays; // debugging only likely
 
+/* When we collectData each step, 
+
+4s will denote empty
+
+0s will denote unknown
+1s will denote FOX
+2s will denote RABBIT
+3s will denote BUSHes
+*/
+
 public class Rabbit extends Animal {
     private int turnNumber = -1;
 
@@ -106,27 +116,6 @@ public class Rabbit extends Animal {
         }
     }
 
-    private void setEdgesAndCorners() {
-        if ((rabbitRow == 0 && rabbitColumn == 0) ||
-                (rabbitRow == 19 && rabbitColumn == 0) ||
-                (rabbitRow == 0 && rabbitColumn == 19) ||
-                (rabbitRow == 19 && rabbitColumn == 19)) {
-            rabbitCorner = true;
-        } else {
-            rabbitCorner = false;
-        }
-
-        System.out.println("Corner? " + rabbitCorner);
-
-        if (rabbitRow == 0 || rabbitRow == 19 || rabbitColumn == 0 || rabbitColumn == 19) {
-            rabbitEdge = true;
-        } else {
-            rabbitEdge = false;
-        }
-
-        System.out.println("Edge? " + rabbitEdge);
-    }
-
     private int turnAndMove(int base, int[] possibleMoves) {
         int i = 0;
         int intendedDirection = Model.turn(base, possibleMoves[i]);
@@ -171,6 +160,8 @@ public class Rabbit extends Animal {
         return 8;
     }
 
+/**********************************************************************/
+
     int decideMove() {
         System.out.println(boardToString());
 
@@ -179,11 +170,11 @@ public class Rabbit extends Animal {
         if (!locationKnown) {
             locateRabbit();
             for (int i = 0; i < 8; i++) {
-                collectData();
+                collectData(i);
             }
-            updateBoard();
+            // updateBoard();
         
-            if (!locationKnown()) {
+            if (!locationKnown) {
                 if (!haveSeenFox) {
                     return moveRabbit(random(0, 8));
                 } else {
@@ -193,15 +184,68 @@ public class Rabbit extends Animal {
             } 
         } else { // we DO know the location of the rabbit
             for (int i = 0; i < 8; i++) {
-                collectData();
+                collectData(i);
             }
-            updateBoard();
-            
+            // updateBoard();
+            if (!haveSeenFox) {
+                return dontMoveRabbit();
+            } else {
+                return moveRabbit(moveToCorner());
+            }
         }
-
-
         return moveRabbit(random(0, 8));
     }
+
+/**********************************************************************/
+
+    private int moveToCorner() {
+        if (rabbitRow <= 9 && rabbitColumn <=9) {
+            if (rabbitRow > rabbitColumn) {
+                return checkAndMove(new int[] {7, 0, 6, 1, 5, 4, 2, 3});
+            } else {
+                return checkAndMove(new int[] {7, 6, 0, 5, 1, 4, 2, 3});
+            }
+        } else if (rabbitRow <= 9 && rabbitColumn >= 10) {
+            if (rabbitRow > 19 - rabbitColumn) {
+                return checkAndMove(new int[] {1, 0, 2, 7, 3, 6, 4, 5});
+            } else {
+                return checkAndMove(new int[] {1, 2, 0, 7, 3, 6, 4, 5});
+            }
+        } else if (rabbitRow >= 10 && rabbitColumn <= 9) {
+            if (19 - rabbitRow > rabbitColumn) {
+                return checkAndMove(new int[] {5, 6, 4, 1, 2, 7, 3});
+            } else {
+                return checkAndMove(new int[] {5, 4, 6, 1, 2, 7, 3});
+            }
+        } else {
+            if (19 - rabbitRow > 19 - rabbitColumn) {
+                return checkAndMove(new int[] {3, 4, 2, 7, 1, 5, 6});
+            } else {
+                return checkAndMove(new int[] {3, 2, 4, 7, 1, 5, 6});
+            }
+        }
+    }
+
+
+/*
+    private int kite() {
+        if (inCorner() && !visibleMap.contains(1)) {
+            if (lastDirectionToFox % 2 == 1) {
+                for (int i = 0; i < 8; i += 2) {
+                    if (distanceMap.get(i) > 1) {
+                        return turnAndMove(i, new int[] {0, 1, 7, 2, 6, 3, 5, 4});
+                    }
+                }
+            }
+        }
+
+        if (rabbitRow <= 9 && rabbitColumn <= 9) {
+
+        }
+    }
+*/
 }
+
+
 
 
