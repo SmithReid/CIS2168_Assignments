@@ -10,7 +10,22 @@ import java.util.Arrays; // debugging only likely
 public class Rabbit extends Animal {
     private int turnNumber = -1;
 
-    private int[][] board = new board[20][20];
+    private int[][] board = new int[20][20];
+
+    private HashMap<Integer, Integer> visibleMap = new HashMap<>();
+    private HashMap<Integer, Integer> distanceMap = new HashMap<>();
+
+    private int rabbitRow = Integer.MAX_VALUE;
+    private int rabbitColumn = Integer.MAX_VALUE;
+
+    private boolean locationKnown = false;
+    private boolean rabbitEdge = false;
+    private boolean rabbitCorner = false;
+
+    private boolean haveSeenFox = false;
+    private int lastDirectionToFox;
+
+    private int lastMove;
 
     public Rabbit(Model model, int row, int column) {
         super(model, row, column);
@@ -25,6 +40,10 @@ public class Rabbit extends Animal {
     }
 
     private int[] getDirections(int i) {
+        while (i >= 8) {
+            i -= 8;
+        }
+
         int yStep = 0;
         int xStep = 0;
         if (i == 0 || i == 7 || i == 1) {
@@ -49,23 +68,23 @@ public class Rabbit extends Animal {
         HashMap<Integer, Integer> edges = new HashMap<>();
         for (int i = 0; i < 8; i++) {
             if (look(i) == 0) {
-                edges.put(i, distance(i) - 1);
+                edges.put(i, distance(i));
             }
         }
 
         if (edges.size() > 1) {
             if (edges.keySet().contains(0)) {
-                rabbitRow = edges.get(0);
+                rabbitRow = edges.get(0) - 1;
             }
             if (edges.keySet().contains(4)) {
-                rabbitRow = 19 - edges.get(4);
+                rabbitRow = 20 - edges.get(4);
             }
 
             if (edges.keySet().contains(2)) {
-                rabbitColumn = 19 - edges.get(2);
+                rabbitColumn = 20 - edges.get(2);
             }
             if (edges.keySet().contains(6)) {
-                rabbitColumn = edges.get(6);
+                rabbitColumn = edges.get(6) - 1;
             }
         }
 
@@ -109,26 +128,15 @@ public class Rabbit extends Animal {
     }
 
     private int turnAndMove(int base, int[] possibleMoves) {
-        /* checkAndMove() is sort of a wrapper around Model.turn()
-        with the added functionality of checking all moves in an array and choosing
-        the first acceptable option. */
         int i = 0;
         int intendedDirection = Model.turn(base, possibleMoves[i]);
         while (!canMove(intendedDirection)) {
             i++;
             if (i >= possibleMoves.length) {
-                return Model.STAY;
+                return random(0, 8);
             }
             intendedDirection = Model.turn(base, possibleMoves[i]);
         }
-
-        int[] deltas = getDirections(intendedDirection);
-        int yStep = deltas[0];
-        int xStep = deltas[1];
-
-        rabbitColumn += yStep;
-        rabbitRow += xStep;
-
         return intendedDirection;
     }
 
@@ -137,21 +145,63 @@ public class Rabbit extends Animal {
         while (!canMove(possibleMoves[i])) {
             i++;
             if (i >= possibleMoves.length) {
-                return Model.STAY;
+                return random(0, 8);
             }
         }
-
-        int[] deltas = getDirections(possibleMoves[i]);
+        return possibleMoves[i];
+    }
+    
+    private int moveRabbit(int direction) {
+        int[] deltas = getDirections(direction);
         int yStep = deltas[0];
         int xStep = deltas[1];
 
-        rabbitColumn += yStep;
-        rabbitRow += xStep;
+        board[rabbitRow][rabbitColumn] = 4;
 
-        return possibleMoves[i];
+        rabbitRow += yStep;
+        rabbitColumn += xStep;
+        
+        board[rabbitRow][rabbitColumn] = 2;
+
+        lastMove = direction;
+        return direction;
+    }
+
+    private int dontMoveRabbit() {
+        return 8;
     }
 
     int decideMove() {
+        System.out.println(boardToString());
 
+        turnNumber++;
+
+        if (!locationKnown) {
+            locateRabbit();
+            for (int i = 0; i < 8; i++) {
+                collectData();
+            }
+            updateBoard();
+        
+            if (!locationKnown()) {
+                if (!haveSeenFox) {
+                    return moveRabbit(random(0, 8));
+                } else {
+                    return moveRabbit(turnAndMove(lastDirectionToFox, 
+                                        new int[] {3, 5, 4, 1, 7, 2, 6, 0}));
+                }
+            } 
+        } else { // we DO know the location of the rabbit
+            for (int i = 0; i < 8; i++) {
+                collectData();
+            }
+            updateBoard();
+            
+        }
+
+
+        return moveRabbit(random(0, 8));
     }
 }
+
+
