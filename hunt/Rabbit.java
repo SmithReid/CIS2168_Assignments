@@ -2,6 +2,9 @@
 // Version began 1/22/2021
 // Version 1.0
 
+// TODO: fix movement re rabbitRow and rabbitColumn 
+// TODO: implement rabbit tracking on board
+
 import java.util.HashMap;
 import java.lang.Integer;
 
@@ -126,7 +129,9 @@ public class Rabbit extends Animal {
             xToSet += xStep;
         }
         board[rabbitRow][rabbitColumn] = 2;
+    }
 
+    private void setEdgesAndCorners() {
         if ((rabbitRow == 0 && rabbitColumn == 0) ||
                 (rabbitRow == 19 && rabbitColumn == 0) ||
                 (rabbitRow == 0 && rabbitColumn == 19) ||
@@ -136,11 +141,15 @@ public class Rabbit extends Animal {
             rabbitCorner = false;
         }
 
+        System.out.println("Corner? " + rabbitCorner);
+
         if (rabbitRow == 0 || rabbitRow == 19 || rabbitColumn == 0 || rabbitColumn == 19) {
             rabbitEdge = true;
         } else {
             rabbitEdge = false;
         }
+
+        System.out.println("Edge? " + rabbitEdge);
     }
 
     private int turnAndMove(int base, int[] possibleMoves) {
@@ -223,6 +232,9 @@ public class Rabbit extends Animal {
     }
 
     int decideMove() {
+        System.out.println("(" + rabbitRow + ", " + rabbitColumn + ")");
+        System.out.println(boardToString());
+
         turnNumber++;
         if (!locationKnown) {
             locateRabbit();
@@ -233,6 +245,7 @@ public class Rabbit extends Animal {
             for (int i = 0; i < 8; i++) {
                 collectData(i);
             }
+            setEdgesAndCorners();
             if (!haveSeenFox) {
                 return moveToCorner();
             } else {
