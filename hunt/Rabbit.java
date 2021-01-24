@@ -4,6 +4,8 @@
 
 import java.util.HashMap;
 import java.lang.Integer;
+import java.util.Collections;
+import java.util.Random;
 
 import java.util.Arrays; // debugging only likely
 
@@ -34,6 +36,7 @@ public class Rabbit extends Animal {
 
     private boolean haveSeenFox = false;
     private int lastDirectionToFox;
+    private boolean runClockwise = false;
 
     private int lastMove;
 
@@ -47,6 +50,21 @@ public class Rabbit extends Animal {
             output += Arrays.toString(board[i]) + "\n";
         }
         return output;
+    }
+
+    // https://www.journaldev.com/32661/shuffle-array-java with VERY minor modification
+    private int[] shuffledOptions() {
+        int[] array = {0, 1, 2, 3, 4, 5, 6, 7};
+        
+        Random rand = new Random();
+        
+        for (int i = 0; i < array.length; i++) {
+            int randomIndexToSwap = rand.nextInt(array.length);
+            int temp = array[randomIndexToSwap];
+            array[randomIndexToSwap] = array[i];
+            array[i] = temp;
+        }
+        return array;
     }
 
     private int[] getDirections(int i) {
@@ -72,6 +90,31 @@ public class Rabbit extends Animal {
             xStep = -1;
         }
         return new int[] {yStep, xStep};
+    }
+
+    private int getQuadrant() {
+        if (rabbitRow <= 9 && rabbitColumn <=9) {
+            return 0;
+        } else if (rabbitRow <= 9 && rabbitColumn >= 10) {
+            return 1; 
+        } else if (rabbitRow >= 10 && rabbitColumn <= 9) {
+            return 2; 
+        } else {
+            return 3;
+        }
+    }
+
+    private boolean runClockwise(int direction) {
+        switch (getQuadrant()) {
+            case 0: 
+                return (4 <= direction && direction <= 7);
+            case 1: 
+                return !(2 <= direction && direction <= 5);
+            case 2: 
+                return !(3 <= direction && direction <= 6);
+            default:
+                return (1 <= direction && direction <= 4);
+        }
     }
 
     private void locateRabbit() {
@@ -104,6 +147,45 @@ public class Rabbit extends Animal {
         }
     }
 
+/*
+
+    private boolean rabbitCorner() {
+        int adjacentObjects = 0;
+        for (int i = 0; i < 8; i += 2) {
+            if (distanceMap.get(i) == 1) {
+                adjacentObjects++;
+            }
+        }
+        if (adjacentObjects > 1) {
+            return true;
+        }
+        return false;
+    }
+
+*/
+
+    // outputs an array where length is number of objects next to rabbit at right angles
+    // and values are the directions towards those objects. 
+    // so, if rabbit is in corner in quadrant 0 with no adjacent bushes, 
+        // output = {0, 6}
+    private int[] adjacentRightObjects() {
+        int count = 0;
+        for (int i = 0; i < 8; i += 2) {
+            if (distanceMap.get(i) == 1) {
+                count++;
+            }
+        }
+        int[] output = new int[count];
+        int outputIndex = 0;
+        for (int i = 0; i < 8; i += 2) {
+            if (distanceMap.get(i) == 1) {
+                output[outputIndex] = i;
+                outputIndex++;
+            }
+        }
+        return output;
+    }
+
     private void collectData(int direction) {
         int visible = look(direction);
         int distance = distance(direction);
@@ -111,8 +193,12 @@ public class Rabbit extends Animal {
         distanceMap.put(direction, distance);
 
         if (visible == 1) {
-            haveSeenFox = true;
             lastDirectionToFox = direction;
+
+            if (!haveSeenFox) {
+                runClockwise = runClockwise(lastDirectionToFox);
+            }
+            haveSeenFox = true;
         }
     }
 
@@ -121,9 +207,6 @@ public class Rabbit extends Animal {
         int intendedDirection = Model.turn(base, possibleMoves[i]);
         while (!canMove(intendedDirection)) {
             i++;
-            if (i >= possibleMoves.length) {
-                return random(0, 8);
-            }
             intendedDirection = Model.turn(base, possibleMoves[i]);
         }
         return intendedDirection;
@@ -133,14 +216,17 @@ public class Rabbit extends Animal {
         int i = 0;
         while (!canMove(possibleMoves[i])) {
             i++;
-            if (i >= possibleMoves.length) {
-                return random(0, 8);
-            }
         }
         return possibleMoves[i];
     }
     
     private int moveRabbit(int direction) {
+        System.out.println(direction);
+
+        if (!locationKnown) {
+            return direction;
+        }
+
         int[] deltas = getDirections(direction);
         int yStep = deltas[0];
         int xStep = deltas[1];
@@ -160,10 +246,72 @@ public class Rabbit extends Animal {
         return 8;
     }
 
+    private int moveToCorner() {
+        int quadrant = getQuadrant();
+        if (quadrant == 0) {
+            if (rabbitRow > rabbitColumn) {
+                return checkAndMove(new int[] {7, 0, 6, 1, 5, 4, 2, 3});
+            } else {
+                return checkAndMove(new int[] {7, 6, 0, 5, 1, 4, 2, 3});
+            }
+        } else if (quadrant == 1) {
+            if (rabbitRow > 19 - rabbitColumn) {
+                return checkAndMove(new int[] {1, 0, 2, 7, 3, 6, 4, 5});
+            } else {
+                return checkAndMove(new int[] {1, 2, 0, 7, 3, 6, 4, 5});
+            }
+        } else if (quadrant == 3) {
+            if (19 - rabbitRow > 19 - rabbitColumn) {
+                return checkAndMove(new int[] {3, 4, 2, 7, 0, 1, 5, 6});
+            } else {
+                return checkAndMove(new int[] {3, 2, 4, 7, 0, 1, 5, 6});
+            }
+        } else {
+            if (19 - rabbitRow > rabbitColumn) {
+                return checkAndMove(new int[] {5, 6, 4, 1, 0, 2, 7, 3});
+            } else {
+                return checkAndMove(new int[] {5, 4, 6, 1, 0, 2, 7, 3});
+            }  
+        }
+    }
+
+    private int clockMove() {
+        int[] adjacentRightObjects = adjacentRightObjects();
+        int quadrant = getQuadrant();
+        if (adjacentRightObjects.length > 1) { // if in corner
+            if (runClockwise) {
+                if (quadrant == 0) {
+                    return checkAndMove(new int[] {1, 2, 3, 0, 4, 5, 6, 7});
+                } else if (quadrant == 1) {
+                    return checkAndMove(new int[] {3, 4, 5, 2, 1, 6, 7, 0});
+                } else if (quadrant == 2) {
+                    return checkAndMove(new int[] {5, 6, 7, 4, 0, 1, 2, 3});
+                } else {
+                    return checkAndMove(new int[] {7, 0, 1, 6, 5, 4, 2, 3});
+                }
+            } else {
+                if (quadrant == 0) {
+                    return checkAndMove(new int[] {5, 4, 3, 6, 2, 7, 0, 1});
+                } else if (quadrant == 1) {
+                    return checkAndMove(new int[] {7, 6, 5, 0, 4, 3, 2, 1});
+                } else if (quadrant == 2) {
+                    return checkAndMove(new int[] {1, 0, 7, 2, 6, 5, 4, 3});
+                } else {
+                    return checkAndMove(new int[] {3, 2, 1, 4, 0, 7, 6, 5});
+                }
+            }
+        } else if (adjacentRightObjects.length == 1) {
+            return checkAndMove(shuffledOptions());
+        } else {
+            return moveToCorner();
+        }
+
+    }
+
 /**********************************************************************/
 
     int decideMove() {
-        System.out.println(boardToString());
+        // System.out.println(boardToString());
 
         turnNumber++;
 
@@ -176,7 +324,7 @@ public class Rabbit extends Animal {
         
             if (!locationKnown) {
                 if (!haveSeenFox) {
-                    return moveRabbit(random(0, 8));
+                    return moveRabbit(checkAndMove(shuffledOptions()));
                 } else {
                     return moveRabbit(turnAndMove(lastDirectionToFox, 
                                         new int[] {3, 5, 4, 1, 7, 2, 6, 0}));
@@ -190,41 +338,17 @@ public class Rabbit extends Animal {
             if (!haveSeenFox) {
                 return dontMoveRabbit();
             } else {
-                return moveRabbit(moveToCorner());
+                if (adjacentRightObjects().length > 0) {
+                    return moveRabbit(clockMove());
+                } else {
+                    return moveRabbit(moveToCorner());
+                }
             }
         }
-        return moveRabbit(random(0, 8));
+        return moveRabbit(checkAndMove(shuffledOptions()));
     }
 
 /**********************************************************************/
-
-    private int moveToCorner() {
-        if (rabbitRow <= 9 && rabbitColumn <=9) {
-            if (rabbitRow > rabbitColumn) {
-                return checkAndMove(new int[] {7, 0, 6, 1, 5, 4, 2, 3});
-            } else {
-                return checkAndMove(new int[] {7, 6, 0, 5, 1, 4, 2, 3});
-            }
-        } else if (rabbitRow <= 9 && rabbitColumn >= 10) {
-            if (rabbitRow > 19 - rabbitColumn) {
-                return checkAndMove(new int[] {1, 0, 2, 7, 3, 6, 4, 5});
-            } else {
-                return checkAndMove(new int[] {1, 2, 0, 7, 3, 6, 4, 5});
-            }
-        } else if (rabbitRow >= 10 && rabbitColumn <= 9) {
-            if (19 - rabbitRow > rabbitColumn) {
-                return checkAndMove(new int[] {5, 6, 4, 1, 2, 7, 3});
-            } else {
-                return checkAndMove(new int[] {5, 4, 6, 1, 2, 7, 3});
-            }
-        } else {
-            if (19 - rabbitRow > 19 - rabbitColumn) {
-                return checkAndMove(new int[] {3, 4, 2, 7, 1, 5, 6});
-            } else {
-                return checkAndMove(new int[] {3, 2, 4, 7, 1, 5, 6});
-            }
-        }
-    }
 
 
 /*
