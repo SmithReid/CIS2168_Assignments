@@ -22,8 +22,6 @@ import java.util.Arrays; // debugging only likely
 public class Rabbit extends Animal {
     private int turnNumber = -1;
 
-    private int[][] board = new int[20][20];
-
     private HashMap<Integer, Integer> visibleMap = new HashMap<>();
     private HashMap<Integer, Integer> distanceMap = new HashMap<>();
 
@@ -37,19 +35,10 @@ public class Rabbit extends Animal {
     private boolean haveSeenFox = false;
     private int lastDirectionToFox;
     private boolean runClockwise = false;
-
-    private int lastMove;
+    private boolean foundCorner = false;
 
     public Rabbit(Model model, int row, int column) {
         super(model, row, column);
-    }
-
-    private String boardToString() {
-        String output = "";
-        for (int i = 0; i < board.length; i++) {
-            output += Arrays.toString(board[i]) + "\n";
-        }
-        return output;
     }
 
     // https://www.journaldev.com/32661/shuffle-array-java with VERY minor modification
@@ -143,7 +132,6 @@ public class Rabbit extends Animal {
 
         if (rabbitRow < Integer.MAX_VALUE && rabbitColumn < Integer.MAX_VALUE) {
             locationKnown = true;
-            board[rabbitRow][rabbitColumn] = 2;
         }
     }
 
@@ -202,6 +190,18 @@ public class Rabbit extends Animal {
         }
     }
 
+    private int getFurthestEdge() {
+        int maxDistance = 0;
+        int output = 0;
+        for (int i = 0; i < 8; i += 2) {
+            if (visibleMap.get(i) == 0 && distanceMap.get(i) > maxDistance) {
+                maxDistance = distanceMap.get(i);
+                output = i;
+            }
+        }
+        return output;
+    }
+
     private int turnAndMove(int base, int[] possibleMoves) {
         int i = 0;
         int intendedDirection = Model.turn(base, possibleMoves[i]);
@@ -221,8 +221,6 @@ public class Rabbit extends Animal {
     }
     
     private int moveRabbit(int direction) {
-        System.out.println(direction);
-
         if (!locationKnown) {
             return direction;
         }
@@ -231,14 +229,9 @@ public class Rabbit extends Animal {
         int yStep = deltas[0];
         int xStep = deltas[1];
 
-        board[rabbitRow][rabbitColumn] = 4;
-
         rabbitRow += yStep;
         rabbitColumn += xStep;
         
-        board[rabbitRow][rabbitColumn] = 2;
-
-        lastMove = direction;
         return direction;
     }
 
@@ -301,7 +294,13 @@ public class Rabbit extends Animal {
                 }
             }
         } else if (adjacentRightObjects.length == 1) {
-            return checkAndMove(shuffledOptions());
+            if (runClockwise) {
+                return turnAndMove(adjacentRightObjects[0], 
+                            new int[] {2, 1, 3, 0, 4, 5, 7, 6});
+            } else {
+                return turnAndMove(adjacentRightObjects[0], 
+                            new int[] {6, 5, 7, 4, 0, 1, 3, 2});
+            }
         } else {
             return moveToCorner();
         }
@@ -324,7 +323,10 @@ public class Rabbit extends Animal {
         
             if (!locationKnown) {
                 if (!haveSeenFox) {
-                    return moveRabbit(checkAndMove(shuffledOptions()));
+                    if (canMove(getFurthestEdge())) {
+                        return getFurthestEdge();
+                    }
+                    return 8;
                 } else {
                     return moveRabbit(turnAndMove(lastDirectionToFox, 
                                         new int[] {3, 5, 4, 1, 7, 2, 6, 0}));
@@ -336,12 +338,25 @@ public class Rabbit extends Animal {
             }
             // updateBoard();
             if (!haveSeenFox) {
-                return dontMoveRabbit();
-            } else {
-                if (adjacentRightObjects().length > 0) {
-                    return moveRabbit(clockMove());
-                } else {
+                if (!foundCorner) {
+                    if (adjacentRightObjects().length > 1) {
+                        foundCorner = true;
+                        dontMoveRabbit();
+                    }
                     return moveRabbit(moveToCorner());
+                } else {
+                    dontMoveRabbit();
+                }
+            } else {
+                if (adjacentRightObjects().length > 1) {
+                    foundCorner = true;
+                    return moveRabbit(clockMove());
+                } else if (adjacentRightObjects().length == 1) {
+                    return moveRabbit(clockMove());
+                } else if (!foundCorner) {
+                        return moveRabbit(moveToCorner());
+                } else {
+                    return dontMoveRabbit();
                 }
             }
         }
