@@ -2,6 +2,13 @@
 // Version began 1/25/2021
 // Version 1.2
 
+/* 
+0s will denote unknown
+1s will denote FOX
+2s will denote RABBIT
+3s will denote BUSHes
+*/
+
 import java.util.HashMap;
 
 public class Rabbit extends Animal {
@@ -11,11 +18,13 @@ public class Rabbit extends Animal {
     private int rabbitColumn = 1000;
 
     private boolean haveSeenFox;
-    private int lastDirectionToFox = 8;
+    private int runAway = 8;
     private int lastDistanceToFox = 1000;
     private int lastFoxTurn = 0;
 
     private int turnNumber = 0;
+    private int lastTurn = 8;
+    private int lastCornerTurn = -1000;
 
     public Rabbit(Model model, int row, int column) {
         super(model, row, column);
@@ -80,11 +89,49 @@ public class Rabbit extends Animal {
         int distance = distance(direction);
 
         if (visible == 1) {
-            lastDirectionToFox = direction;
+            runAway = direction;
             lastDistanceToFox = distance;
             lastFoxTurn = turnNumber;
             haveSeenFox = true;
         }
+    }
+
+    private boolean bushCorner() {
+        int adjacentObjects = 0;
+        for (int i = 7; i >= 0; i--) {
+            if (distance(i) == 1) {
+                adjacentObjects++;
+            }
+            if (adjacentObjects > 0) {
+                runAway = i;
+            }
+        }
+        return (adjacentObjects > 1);
+    }
+
+    private boolean corner() {
+        if (rabbitRow == 0 && rabbitColumn == 0) {
+            runAway = 7;
+            lastCornerTurn = turnNumber;
+            return true;
+        } else if (rabbitRow == 0 && rabbitColumn == 19) {
+            runAway = 1;
+            lastCornerTurn = turnNumber;
+            return true;
+        } else if (rabbitRow == 19 && rabbitColumn == 0) {
+            runAway = 5;
+            lastCornerTurn = turnNumber;
+            return true;
+        } else if (rabbitRow == 19 && rabbitColumn == 19) {
+            runAway = 3; 
+            lastCornerTurn = turnNumber;
+            return true;
+        }
+        return false;
+    }
+    
+    private int repeatLastTurn() {
+        return turnAndMove(lastTurn, new int[] {0, 7, 6, 1, 5, 2, 3, 4});
     }
 
     private int turnAndMove(int base, int[] possibleMoves) {
@@ -118,6 +165,7 @@ public class Rabbit extends Animal {
         rabbitColumn += xStep;
 
         turnNumber++;
+        lastTurn = direction;
         return direction;
     }
 
@@ -135,9 +183,9 @@ public class Rabbit extends Animal {
             if (!locationKnown) {
                 if ((lastFoxTurn == turnNumber) || 
                             (haveSeenFox && 
-                            turnNumber - lastFoxTurn < 3 && 
-                            lastDistanceToFox < 6)) {
-                    return moveRabbit(turnAndMove(lastDirectionToFox, 
+                            turnNumber - lastFoxTurn < 4 && 
+                            lastDistanceToFox < 7)) {
+                    return moveRabbit(turnAndMove(runAway, 
                                 new int[] {5, 3, 4, 6, 2, 1, 7, 0}));
                 }
             }
@@ -145,11 +193,13 @@ public class Rabbit extends Animal {
             for (int i = 0; i < 8; i++) {
                 collectFoxData(i);
             }
+            if (turnNumber - lastCornerTurn < 3) {
+                return moveRabbit(repeatLastTurn());
+            }
             if ((lastFoxTurn == turnNumber) || 
-                        (haveSeenFox && 
-                        turnNumber - lastFoxTurn < 3 && 
-                        lastDistanceToFox < 6)) {
-                return moveRabbit(turnAndMove(lastDirectionToFox, 
+                        (turnNumber - lastFoxTurn < 3 && lastDistanceToFox < 5) ||
+                        corner()) {
+                return moveRabbit(turnAndMove(runAway, 
                                 new int[] {5, 3, 4, 6, 2, 1, 7, 0}));
             } else {
                 return dontMoveRabbit(); // this is really all that might be worth changing.
