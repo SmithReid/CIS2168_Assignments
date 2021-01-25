@@ -152,7 +152,7 @@ public class Rabbit extends Animal {
                 return moveRabbit(turnAndMove(lastDirectionToFox, 
                                 new int[] {5, 3, 4, 6, 2, 1, 7, 0}));
             } else {
-                return dontMoveRabbit();
+                return dontMoveRabbit(); // this is really all that might be worth changing.
             }
         }
         return dontMoveRabbit();
