@@ -7,7 +7,7 @@ import java.lang.Integer;
 import java.util.Collections;
 import java.util.Random;
 
-import java.util.Arrays; // debugging only likely
+// import java.util.Arrays; // debugging only likely
 
 /* When we collectData each step, 
 
@@ -23,6 +23,9 @@ public class Rabbit extends Animal {
     private HashMap<Integer, Integer> visibleMap = new HashMap<>();
     private HashMap<Integer, Integer> distanceMap = new HashMap<>();
 
+    private int turnNumber = 0;
+    private int[] turnList = new int[100];
+
     // some parts of the project work only with 20 x 20. Some are more general.
     private int NROWS = 20;
     private int NCOLUMNS = 20;
@@ -37,12 +40,15 @@ public class Rabbit extends Animal {
     private boolean rabbitCorner = false;
 
     private boolean haveSeenFox = false;
+    private int lastFoxTurn = -1000;
     private int lastDirectionToFox;
     private int lastDistanceToFox = -1;
     private int lastFoxRow = -1;
     private int lastFoxColumn = -1;
 
-    private boolean runClockwise = false;
+    private int lastMove = 15;
+
+    private boolean runClockwise = true;
     private boolean foundCorner = false;
 
     public Rabbit(Model model, int row, int column) {
@@ -109,13 +115,13 @@ public class Rabbit extends Animal {
     private boolean runClockwise(int direction) {
         switch (getQuadrant()) {
             case 0: 
-                return (4 <= direction && direction <= 7);
+                return (4 == direction);
             case 1: 
-                return !(2 <= direction && direction <= 5);
+                return (6 == direction);
             case 2: 
-                return !(3 <= direction && direction <= 6);
+                return (0 == direction);
             default:
-                return (1 <= direction && direction <= 4);
+                return (2 == direction);
         }
     }
 
@@ -182,6 +188,8 @@ public class Rabbit extends Animal {
 
         if (visible == 1) {
             lastDirectionToFox = direction;
+            lastDistanceToFox = distance;
+            lastFoxTurn = turnNumber;
 
             if (!haveSeenFox) {
                 runClockwise = runClockwise(lastDirectionToFox);
@@ -200,17 +208,11 @@ public class Rabbit extends Animal {
             }
             if (!bushInBushes) {
                 int i = 0;
-                while (bushes[i][0] != -1 && bushes[i][1] != -1 && i < bushes.length) {
+                while (bushes[i][0] != -1 && bushes[i][1] != -1 && i < 19) {
                     i++;
                 }
                 bushes[i][0] = bush[0];
                 bushes[i][1] = bush[1];
-
-
-                for (i = 0; i < bushes.length; i++) {
-                    System.out.print(Arrays.toString(bushes[i]) + " ");
-                }
-                System.out.println();
             }
         }
     }
@@ -234,12 +236,12 @@ public class Rabbit extends Animal {
         return -1;
     }
 
-    private int getFurthestEdge() {
-        int maxDistance = 0;
+    private int getNearestEdge() {
+        int minDistance = 1000;
         int output = 0;
         for (int i = 0; i < 8; i += 2) {
-            if (visibleMap.get(i) == 0 && distanceMap.get(i) > maxDistance) {
-                maxDistance = distanceMap.get(i);
+            if (visibleMap.get(i) == 0 && distanceMap.get(i) < minDistance) {
+                minDistance = distanceMap.get(i);
                 output = i;
             }
         }
@@ -275,11 +277,15 @@ public class Rabbit extends Animal {
 
         rabbitRow += yStep;
         rabbitColumn += xStep;
-        
+
+        turnList[turnNumber] = direction;    
+
+        turnNumber++;
         return direction;
     }
 
     private int dontMoveRabbit() {
+        turnNumber++;
         return 8;
     }
 
@@ -339,14 +345,32 @@ public class Rabbit extends Animal {
             }
         } else if (adjacentRightObjects.length == 1) {
             if (runClockwise) {
-                return turnAndMove(adjacentRightObjects[0], 
-                            new int[] {2, 1, 3, 0, 4, 5, 7, 6});
+                if (quadrant == 0) {
+                    return checkAndMove(new int[] {2, 1, 3, 0, 4, 5, 6, 7});
+                } else if (quadrant == 1) {
+                    return checkAndMove(new int[] {4, 3, 5, 2, 1, 6, 7, 0});
+                } else if (quadrant == 2) {
+                    return checkAndMove(new int[] {6, 5, 7, 4, 0, 1, 2, 3});
+                } else {
+                    return checkAndMove(new int[] {0, 7, 1, 6, 5, 4, 2, 3});
+                }
             } else {
-                return turnAndMove(adjacentRightObjects[0], 
-                            new int[] {6, 5, 7, 4, 0, 1, 3, 2});
+                if (quadrant == 0) {
+                    return checkAndMove(new int[] {4, 3, 5, 6, 2, 7, 0, 1});
+                } else if (quadrant == 1) {
+                    return checkAndMove(new int[] {6, 5, 7, 0, 4, 3, 2, 1});
+                } else if (quadrant == 2) {
+                    return checkAndMove(new int[] {0, 7, 1, 2, 6, 5, 4, 3});
+                } else {
+                    return checkAndMove(new int[] {2, 1, 3, 4, 0, 7, 6, 5});
+                }
             }
         } else {
-            return moveToCorner();
+            if (runClockwise) {
+                return turnAndMove(getNearestEdge(), new int[] {5, 0, 6, 7, 4, 3, 1, 2});
+            } else {
+                return turnAndMove(getNearestEdge(), new int[] {3, 0, 2, 1, 4, 6, 7, 5});
+            }
         }
 
     }
@@ -362,8 +386,8 @@ public class Rabbit extends Animal {
         
             if (!locationKnown) {
                 if (!haveSeenFox) {
-                    if (canMove(getFurthestEdge())) {
-                        return getFurthestEdge();
+                    if (canMove(getNearestEdge())) {
+                        return getNearestEdge();
                     }
                     return 8;
                 } else if (lastDirectionToFox % 2 == 1) {
@@ -377,8 +401,21 @@ public class Rabbit extends Animal {
                 collectData(i);
             }
             if (!haveSeenFox) {
-                return dontMoveRabbit();
+                if (adjacentRightObjects().length > 1) {
+                    foundCorner = true;
+                    return dontMoveRabbit();
+                }
             } else {
+                if (lastDistanceToFox < 5 && turnNumber - lastFoxTurn < 4) {
+                    if (runClockwise) {
+                        return moveRabbit(turnAndMove(lastDirectionToFox, 
+                                    new int[] {3, 4, 2, 5, 6, 1, 7, 0}));
+                    } else {
+                        return moveRabbit(turnAndMove(lastDirectionToFox, 
+                                    new int[] {5, 4, 6, 3, 2, 7, 1, 0}));
+                    }
+                }
+
                 if (adjacentRightObjects().length > 1) {
                     foundCorner = true;
                     return moveRabbit(clockMove());
@@ -386,12 +423,12 @@ public class Rabbit extends Animal {
                     if (directionToFox() >= 0) {
                         clockMove();
                     }
-                    return dontMoveRabbit();
+                    return moveRabbit(clockMove());
                 } else {
                     return moveRabbit(clockMove());
                 }
             }
         }
-        return moveRabbit(checkAndMove(shuffledOptions()));
+        return dontMoveRabbit();
     }
 }
