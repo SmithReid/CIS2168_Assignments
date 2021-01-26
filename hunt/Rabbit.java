@@ -43,7 +43,7 @@ public class Rabbit extends Animal {
             return;
         }
 
-        int weight = 0;
+        int weight = 650;
         if (direction == Model.turn(lastFoxDirection, 5))      weight = 1000;
         else if (direction == Model.turn(lastFoxDirection, 3)) weight = 900;
         else if (direction == Model.turn(lastFoxDirection, 4)) weight = 800;
@@ -55,8 +55,6 @@ public class Rabbit extends Animal {
 
         weight += 32 * distance(direction);
 
-
-
         moves.put(direction, weight);
     }
 
@@ -64,12 +62,13 @@ public class Rabbit extends Animal {
         for (int i = 0; i < 8; i++) {
             collectFoxData(i);
         }
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i <= 8; i++) {
             considerMove(i);
         }
+        moves.put(8, moves.get(8) + (turnNumber - lastFoxTurn) * 398);
         int output = 8;
         int bestMoveScore = 0;
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i <= 8; i++) {
             if (moves.get(i) > 0 && moves.get(i) > bestMoveScore) {
                 bestMoveScore = moves.get(i);
                 output = i;
