@@ -46,7 +46,7 @@ public class MazeGridPanel extends JPanel{
 
             current = stack.peek();
         }
-    } 
+    }
 
     public boolean visited(int row, int col) {
         Cell c = maze[row][col];
