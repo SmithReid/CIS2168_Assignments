@@ -31,10 +31,7 @@ public class MazeGridPanel extends JPanel{
 		finish.setBackground(Color.RED);
 		stack.push(start);
 
-		current = start;
-		while (current.status != Color.RED && !stack.isEmpty()) {
-			
-		}
+		 
 	}
 
 
