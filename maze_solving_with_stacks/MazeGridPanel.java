@@ -22,7 +22,7 @@ public class MazeGridPanel extends JPanel{
 
     //homework
     public void solveMaze() {
-        Stack<Cell> stack  = new Stack<Cell>();
+        Stack<Cell> stack = new Stack<Cell>();
         Cell start = maze[0][0];
         start.setBackground(Color.GREEN);
         Cell finish = maze[rows-1][cols-1];
