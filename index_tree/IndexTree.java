@@ -2,6 +2,7 @@ import java.util.Scanner;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
+import java.lang.StringBuilder;
 
 
 // Your class. Notice how it has no generics.
@@ -40,23 +41,23 @@ public class IndexTree {
     // you want to  add it to the IndexNode that already exists
     // otherwise make a new indexNode
     private IndexNode add(IndexNode root, String word, int lineNumber) {
-        if (word == root.word) {
+        if (root.word.equals(word)) {
             root.add(lineNumber);
             return root;
         }
-        if (word.compareTo(root.word) == -1) {
+        if (word.compareTo(root.word) < 0) {
             if (root.left == null) {
                 root.left = new IndexNode(word, lineNumber);
                 return root.left;
             }
-            return root.left.add(lineNumber);
+            return add(root.left, word, lineNumber);
         }
         else {
             if (root.right == null) {
                 root.right = new IndexNode(word, lineNumber);
                 return root.right;
             }
-            return root.right.add(lineNumber);
+            return add(root.right, word, lineNumber);
         }
     }
     
@@ -87,16 +88,32 @@ public class IndexTree {
     }
 
     public void indexToFile(String filename) throws FileNotFoundException {
-        PrintStream out = new PrintStream(new File("test.txt"));
+        PrintStream out = new PrintStream(new File(filename));
         out.print(this.toString());
         out.close();
     }
 
     public String toString() {
-        return "";
+        // https://janac.medium.com/simple-tostring-method-for-binary-search-trees-af6b7171f432
+        String output = "Begin index: \n";
+        return output += this.toStringInOrder(this.root);
+    }
+
+    private String toStringInOrder(IndexNode root) {
+        if (root == null)
+            return "";
+
+        StringBuilder builder = new StringBuilder();
+
+        builder.append(toStringInOrder(root.left));
+        builder.append(root.toString());
+        builder.append(toStringInOrder(root.right));
+
+        return builder.toString();
     }
     
     public static void main(String[] args) throws FileNotFoundException {
+        // regex courtesy of: https://stackoverflow.com/questions/18830813/how-can-i-remove-punctuation-from-input-text-in-java
         IndexTree index = new IndexTree();
 
         // load the file
@@ -106,23 +123,25 @@ public class IndexTree {
         int lineNumber = 0;
         boolean flag = false;
         do {
-            String firstLine = sc.nextLine();
+            String firstLine = sc.nextLine().replaceAll("[^a-zA-Z ]", "").toUpperCase();
             Scanner lineSC = new Scanner(firstLine);
             if (lineSC.hasNext()) {
                 index.root = new IndexNode(lineSC.next(), lineNumber);
                 while (lineSC.hasNext()) {
                     index.add(lineSC.next(), lineNumber);
                 }
+                lineNumber++;
             } else 
                 flag = false;
                 lineNumber++;
         } while (flag);
         while (sc.hasNextLine()) {
-            String line = sc.nextLine();
+            String line = sc.nextLine().replaceAll("[^a-zA-Z ]", "").toUpperCase();
             Scanner lineSC = new Scanner(line);
-            while (lineSC.hasNext()) 
+            while (lineSC.hasNext()) {
                 index.add(lineSC.next(), lineNumber);
-            lineNumber++;
+                lineNumber++;
+            }
         }
         
         // print out the index

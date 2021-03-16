@@ -18,6 +18,7 @@ public class IndexNode  {
     
     public IndexNode(String word, int lineNumber) {
         occurrences = 1;
+        this.word = word;
         list = new ArrayList<Integer>();
         list.add(lineNumber);
     }
@@ -33,10 +34,10 @@ public class IndexNode  {
     // string must be one line
     
     public String toString() {
-        String output = word + " occurs " + occurrences + " times, on line(s): \n";
+        String output = "'" + word + "'" + " occurs " + occurrences + " time(s), on line(s): \n";
         for (int i = 0; i < list.size() - 1; i++)  
             output += list.get(i) + ", ";
-        output += list.get(list.size() - 1) + ".";
+        output += list.get(list.size() - 1) + ".\n\n";
         return output;
     }
 }
