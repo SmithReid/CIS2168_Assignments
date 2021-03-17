@@ -63,20 +63,61 @@ public class IndexTree {
     
     // returns true if the word is in the index
     public boolean contains(String word) {
-        return true;
+        word = word.replaceAll("[^a-zA-Z ]", "").toUpperCase();
+        if (root.word.equals(word))
+            return true;
+        return contains(root, word);
+    }
+
+    private boolean contains(IndexNode root, String word) {
+        if (root.word.equals(word))
+            return true;
+        if (word.compareTo(root.word) < 0) {
+            if (root.left != null)
+                return contains(root.left, word);
+            else
+                return false;
+        } else {
+            if (root.right != null)
+                return contains(root.right, word);
+            else return false;
+        }
     }
     
     // call your recursive method
     // use book as guide
     public void delete(String word) {
-        
+        if (!this.contains(word))
+            return;
+        this.root = delete(this.root, word);
     }
     
     // your recursive case
     // remove the word and all the entries for the word
     // This should be no different than the regular technique.
     private IndexNode delete(IndexNode root, String word) {
-        return null;
+        if (root == null)
+            return null;
+        int comparison = word.compareTo(root.word);
+        if (comparison < 0) {
+            root.left = delete(root.left, word);
+            return root;
+        }
+        else if (comparison > 0) {
+            root.right = delete(root.right, word);
+            return root;
+        }
+        else {
+            if (root.left == null && root.right == null)
+                return null;
+            else if (root.left == null && root.right != null)
+                return root.right;
+            else if (root.right == null && root.left != null)
+                return root.left;
+            else {
+
+            }
+        }
     }
 
     // prints all the words in the index in inorder order
@@ -111,11 +152,8 @@ public class IndexTree {
 
         return builder.toString();
     }
-    
-    public static void main(String[] args) throws FileNotFoundException {
-        // regex courtesy of: https://stackoverflow.com/questions/18830813/how-can-i-remove-punctuation-from-input-text-in-java
-        IndexTree index = new IndexTree();
 
+    public void buildIndexAndPrintToFile(IndexTree index) throws FileNotFoundException {
         // load the file
         Scanner sc = new Scanner(new File("pg100.txt"));
         
@@ -143,6 +181,16 @@ public class IndexTree {
                 lineNumber++;
             }
         }
+    }
+    
+    public static void main(String[] args) throws FileNotFoundException {
+        // regex courtesy of: https://stackoverflow.com/questions/18830813/how-can-i-remove-punctuation-from-input-text-in-java
+        IndexTree index = new IndexTree();
+        
+        index.buildIndexAndPrintToFile(index);
+
+        System.out.println(index.contains("THOU"));
+        System.out.println(index.contains("A"));
         
         // print out the index
         index.indexToFile("complete_index.txt");
@@ -151,6 +199,6 @@ public class IndexTree {
         index.delete("thou");
         index.indexToFile("index_minus_thou.txt");
 
-        
+        // printIndex();
     }
 }
