@@ -203,6 +203,6 @@ public class IndexTree {
         index.delete("thou");
         index.indexToFile("index_minus_thou.txt");
 
-        // printIndex();
+        printIndex();
     }
 }
