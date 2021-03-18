@@ -87,8 +87,7 @@ public class IndexTree {
     // call your recursive method
     // use book as guide
     public void delete(String word) {
-        if (!this.contains(word))
-            return;
+        word = word.replaceAll("[^a-zA-Z ]", "").toUpperCase();
         this.root = delete(this.root, word);
     }
     
@@ -102,20 +101,25 @@ public class IndexTree {
         if (comparison < 0) {
             root.left = delete(root.left, word);
             return root;
-        }
-        else if (comparison > 0) {
+        } else if (comparison > 0) {
             root.right = delete(root.right, word);
             return root;
-        }
-        else {
+        } else {
             if (root.left == null && root.right == null)
                 return null;
+            else if (root.left != null && root.right == null)
+                return root.left;
             else if (root.left == null && root.right != null)
                 return root.right;
-            else if (root.right == null && root.left != null)
-                return root.left;
             else {
-
+                IndexNode current = root.left;
+                while (current.right != null)
+                    current = current.right;
+                root.word = current.word;
+                root.list = current.list;
+                root.occurrences = current.occurrences;
+                root.left = delete(root.left, root.word);
+                return root;
             }
         }
     }
@@ -153,7 +157,7 @@ public class IndexTree {
         return builder.toString();
     }
 
-    public void buildIndexAndPrintToFile(IndexTree index) throws FileNotFoundException {
+    public void buildIndex(IndexTree index) throws FileNotFoundException {
         // load the file
         Scanner sc = new Scanner(new File("pg100.txt"));
         
@@ -187,7 +191,7 @@ public class IndexTree {
         // regex courtesy of: https://stackoverflow.com/questions/18830813/how-can-i-remove-punctuation-from-input-text-in-java
         IndexTree index = new IndexTree();
         
-        index.buildIndexAndPrintToFile(index);
+        index.buildIndex(index);
 
         System.out.println(index.contains("THOU"));
         System.out.println(index.contains("A"));
