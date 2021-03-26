@@ -1,4 +1,5 @@
 Collaborators: Olivia Chaves, Reid Smith
+
 Began 3/21/21
 
 To run: compile java source `javac *.java`

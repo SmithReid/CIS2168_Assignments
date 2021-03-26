@@ -58,7 +58,6 @@ public class MazeGridPanel extends JPanel{
     }
 
     public void genNWMaze() {
-        
         for(int row = 0; row  < rows; row++) {
             for(int col = 0; col < cols; col++) {
 

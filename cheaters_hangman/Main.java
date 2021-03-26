@@ -32,21 +32,23 @@ public class Main {
             String userString = userIn.next();
             String userGuess = userString.substring(0, 1); // if the user enters more than one char, use the first
             Iterator iterNDict = nDict.iterator();
-            HashSet<String> wrongs = new HashSet<>();
+            HashSet<String> missingAllUserLetters = new HashSet<>();
             while (iterNDict.hasNext()) {
                 String word = String.valueOf(iterNDict.next());
                 if (!word.contains(userGuess))
-                    wrongs.add(word);
+                    missingAllUserLetters.add(word);
             }
-            if (wrongs.size() > 1) {
+            if (missingAllUserLetters.size() > 1) {
                 iterNDict = nDict.iterator();
                 while (iterNDict.hasNext()) {
                     String word = String.valueOf(iterNDict.next());
-                    if (!wrongs.contains(word))
+                    if (!missingAllUserLetters.contains(word))
                         nDict.remove(word);
                 }
+            } else if (missingAllUserLetters.size() == 1) {
+
             } else {
-                // TODO: what happens when the user's guess cannot be avoided? 
+
             }
 
             nGuesses--;

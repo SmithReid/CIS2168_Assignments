@@ -54,17 +54,16 @@ public class EightQueens {
         }
 
 
-
+        return true;
 
     }
 
     private boolean solve(int pos) {
         System.out.println(this);
-        int queenCount = countQueens();
-        if (queenCount == 8) 
+        if (countQueens() == 8) 
             return true;
         if (pos > 63) 
-            return false;
+            return true;
 
         int xPos = pos % 8;
         int yPos = pos / 8;
