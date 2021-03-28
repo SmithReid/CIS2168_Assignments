@@ -1,3 +1,6 @@
+// Written by Reid Smith with some collaboration with Olivia Chaves
+
+
 import java.util.Scanner;
 import java.io.File;
 import java.util.HashSet;
@@ -21,57 +24,46 @@ public class Main {
         return dict;
     }
 
-    public static String collectUserGuess(String[] userGuessed) {
+    public static String collectUserGuess(String[] userGuessed, int guessN) {
         Scanner userIn = new Scanner(System.in);
         boolean loopFlag;
+        String output;
         do {
-            loopFlag = false
+            loopFlag = false;
             System.out.println("Please enter your guess: ");
-            String output = userIn.next().substring(0, 1).toLowerCase();
+            output = userIn.next().substring(0, 1).toLowerCase();
             char outChar = output.charAt(0);
-            for (int i = 0; i < userGuessed.length; i++) {
-                if (outChar < 'a' || outChar > 'z') {
-                    System.out.println("Please enter a letter.");
-                    loopFlag = true;
-                }
+            if (outChar < 'a' || outChar > 'z') {
+                System.out.println("Please enter a letter.");
+                loopFlag = true;
+            }
+            for (int i = 0; i <= guessN; i++) {
                 if (output.equals(userGuessed[i])) {
                     System.out.println(
                         "You have already guessed that letter. Please guess again.");
                     loopFlag = true;
                 }
-
             }
         } while (loopFlag);
-        
+
         loopFlag = true;
-        int i = 0;
-        while (loopFlag) {
-            if (!userGuessed[i].equals(null))
-                i++;
-            else {
-                userGuessed[i] = output;
-                loopFlag = false;
-            }
-        }
+        userGuessed[guessN] = output;
         return output;
     }
 
-    public static String findMatch(HashSet<String> nDict, 
-                                String userGuess, String userHasGuessed) {
-        boolean foundResult = false;
-        Iterator iterNDict = nDict.iterator();
-        String output = "";
-        while (!foundResult) {
-            foundResult = true;
-            String word = String.valueOf(iterNDict.next());
-            for (int i = 0; i < userHasGuessed.length(); i++) {
-                if (userHasGuessed.charAt(i) != '_') {
-                    if (userHasGuessed.charAt(i) != word.charAt(i)) {
-                        foundResult = false;
-                    }
-                }
+    public static HashSet<String> findMatches(HashSet<String> nDict, 
+                                String[] userGuessed, int guessN) {
+        HashSet<String> output = new HashSet<>();
+        for (String word : nDict) {
+            boolean wordFlag = true;
+            for (int i = 0; i < guessN; i++) {
+                if (word.contains(userGuessed[i])) 
+                    wordFlag = false;
             }
-            output = word;
+            if (!word.contains(userGuessed[guessN]))
+                wordFlag = false;
+            if (wordFlag)
+                output.add(word);
         }
         return output;
     }
@@ -80,34 +72,76 @@ public class Main {
                             HashMap<Integer, HashSet<String>> dict, 
                             int length, int nGuesses) {
         HashSet<String> nDict = dict.get(length);
+        int startGuesses = nGuesses;
+        boolean contBool;
+        do {
+            contBool = true;
+            nGuesses = startGuesses;
 
-        Scanner userIn = new Scanner(System.in);
-        String userVisible = "";
-        String[] userGuessed = new String[26];
-        String hiddenWord;
-        for (int i = 0; i < length; i++) 
-            userVisible += "_";
+            HashSet<String> missingUserGuesses = new HashSet<>();
+            missingUserGuesses.addAll(nDict);
 
-        while (nGuesses > 0) {
-            System.out.println("You have guessed: " + userVisible);
-            System.out.println("You have " + nGuesses + " guesses remaining.");
-            System.out.println("Your guessed letters are: " + Arrays.toString(userGuessed));
-            System.out.println();
+            Scanner userIn = new Scanner(System.in);
 
-            String[] userGuess = new String[];
+            String[] userGuessed = new String[26];
 
-            String userGuess = collectUserGuess(userGuessed);
+            String userVisible = "";
+            String hiddenWord;
+            for (int i = 0; i < length; i++) 
+                userVisible += "_";
+            boolean userWon = false;
 
-            for (int i = 0; i < userGuessed.length; i++) {
-                if (userGuessed[i] == null) {
-                    userGuessed[i] = userGuess;
-                    break;
+            int guessN = 0;
+
+            while (nGuesses > 0) {
+                System.out.println("You have guessed: " + userVisible);
+                System.out.println("You have " + nGuesses + " guesses remaining.");
+                System.out.println("Your guessed letters are: " + Arrays.toString(userGuessed));
+                System.out.println();
+
+                String userGuess = collectUserGuess(userGuessed, guessN);
+
+                // first we will build a set of words that DON'T match the user's guesses
+                HashSet<String> thirdCopy = new HashSet<>();
+                thirdCopy.addAll(missingUserGuesses);
+
+                for (String word : thirdCopy) {
+                    if (word.contains(userGuess)) {
+                        missingUserGuesses.remove(word);
+                    }
                 }
+
+                if (missingUserGuesses.size() == 0) {
+                    nDict = findMatches(nDict, userGuessed, guessN);
+                    hiddenWord = nDict.iterator().next();
+                } else if (missingUserGuesses.size() == 1) {
+                    hiddenWord = missingUserGuesses.iterator().next();
+                } else {
+                    hiddenWord = nDict.iterator().next();
+                }
+
+                if (userVisible.equals(hiddenWord)) {
+                    nGuesses = 1;
+                    userWon = true;
+                }
+
+                guessN++;
+                nGuesses--;
             }
 
+            if (userWon) 
+                System.out.println("You won!");
+            else 
+                System.out.println("You lost!");
+            System.out.println("Would you like to play again? (y/n)");
+            String cont = userIn.next().substring(0, 1).toLowerCase();
 
-            nGuesses--;
-        }
+            if (cont.equals("y")) 
+                contBool = true;
+            else 
+                contBool = false;
+
+        } while (contBool);
     }
 
     public static void main(String[] args) throws FileNotFoundException {
