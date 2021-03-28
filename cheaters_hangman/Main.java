@@ -21,6 +21,28 @@ public class Main {
         return dict;
     }
 
+    public static String collectUserGuess(String[] userGuessed) {
+        Scanner userIn = new Scanner(System.in);
+        boolean loopFlag;
+        do {
+            loopFlag = false
+            System.out.println("Please enter your guess: ");
+            String output = userIn.next().substring(0, 1).toLowerCase();
+            char outChar = output.charAt(0);
+            for (int i = 0; i < userGuessed.length; i++) {
+                if (outChar < 'a' || outChar > 'z') {
+                    System.out.println("Please enter a letter.");
+                    loopFlag = true;
+                }
+                if (output.equals(userGuessed[i])) {
+                    System.out.println(
+                        "You have already guessed that letter. Please guess again.");
+                    loopFlag = true;
+                }
+
+            }
+        } while (loopFlag);
+
     public static String findMatch(HashSet<String> nDict, 
                                 String userGuess, String userHasGuessed) {
         boolean foundResult = false;
@@ -45,6 +67,7 @@ public class Main {
                             HashMap<Integer, HashSet<String>> dict, 
                             int length, int nGuesses) {
         HashSet<String> nDict = dict.get(length);
+
         Scanner userIn = new Scanner(System.in);
         String userVisible = "";
         String[] userGuessed = new String[26];
@@ -80,8 +103,6 @@ public class Main {
                     break;
                 }
             }
-
-
 
 
             nGuesses--;
