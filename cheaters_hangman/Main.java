@@ -56,7 +56,7 @@ public class Main {
             String userGuess = collectUserGuess(userGuessed); 
                                 // also adds user's guess to array
 
-
+            
 
             nGuesses--;
         }
