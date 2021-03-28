@@ -19,11 +19,47 @@ public class Main {
         return dict;
     }
 
+    public static String collectUserGuess(String[] userGuessed) {
+        Scanner userIn = new Scanner(System.in);
+        boolean loopFlag;
+        do {
+            loopFlag = false
+            System.out.println("Please enter your guess: ");
+            String output = userIn.next().substring(0, 1).toLowerCase();
+            char outChar = output.charAt(0);
+            for (int i = 0; i < userGuessed.length; i++) {
+                if (outChar < 'a' || outChar > 'z') {
+                    System.out.println("Please enter a letter.");
+                    loopFlag = true;
+                }
+                if (output.equals(userGuessed[i])) {
+                    System.out.println(
+                        "You have already guessed that letter. Please guess again.");
+                    loopFlag = true;
+                }
+
+            }
+        } while (loopFlag);
+        return output;
+    }
+
     public static void run(boolean debug, 
                             HashMap<Integer, HashSet<String>> dict, 
                             int length, int nGuesses) {
         HashSet<String> nDict = dict.get(length);
-        
+
+        HashSet<String> removeGuessedLetters = new HashSet<>();
+        removeGuessedLetters.addAll(nDict);
+
+        String[] userGuessed = new String[26];
+        while (nGuesses > 0) {
+            String userGuess = collectUserGuess(userGuessed); 
+                                // also adds user's guess to array
+
+
+
+            nGuesses--;
+        }
     }
 
     public static void main(String[] args) throws FileNotFoundException {
