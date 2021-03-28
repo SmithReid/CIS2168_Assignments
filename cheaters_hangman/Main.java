@@ -23,36 +23,7 @@ public class Main {
                             HashMap<Integer, HashSet<String>> dict, 
                             int length, int nGuesses) {
         HashSet<String> nDict = dict.get(length);
-        Scanner userIn = new Scanner(System.in);
-        String userHasGuessed = "";
-        for (int i = 0; i < length; i++) 
-            userHasGuessed += "_";
-        while (nGuesses > 0) {
-            System.out.println("Please enter your (single letter) guess: ");
-            String userString = userIn.next();
-            String userGuess = userString.substring(0, 1); // if the user enters more than one char, use the first
-            Iterator iterNDict = nDict.iterator();
-            HashSet<String> missingAllUserLetters = new HashSet<>();
-            while (iterNDict.hasNext()) {
-                String word = String.valueOf(iterNDict.next());
-                if (!word.contains(userGuess))
-                    missingAllUserLetters.add(word);
-            }
-            if (missingAllUserLetters.size() > 1) {
-                iterNDict = nDict.iterator();
-                while (iterNDict.hasNext()) {
-                    String word = String.valueOf(iterNDict.next());
-                    if (!missingAllUserLetters.contains(word))
-                        nDict.remove(word);
-                }
-            } else if (missingAllUserLetters.size() == 1) {
-
-            } else {
-
-            }
-
-            nGuesses--;
-        }
+        
     }
 
     public static void main(String[] args) throws FileNotFoundException {
