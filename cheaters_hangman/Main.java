@@ -42,6 +42,19 @@ public class Main {
 
             }
         } while (loopFlag);
+        
+        loopFlag = true;
+        int i = 0;
+        while (loopFlag) {
+            if (!userGuessed[i].equals(null))
+                i++;
+            else {
+                userGuessed[i] = output;
+                loopFlag = false;
+            }
+        }
+        return output;
+    }
 
     public static String findMatch(HashSet<String> nDict, 
                                 String userGuess, String userHasGuessed) {
@@ -81,21 +94,9 @@ public class Main {
             System.out.println("Your guessed letters are: " + Arrays.toString(userGuessed));
             System.out.println();
 
-            String userGuess;
-            boolean loopFlag = false;
-            do {
-                // if the user enters more than one letter, take the first
-                System.out.println("What would you like to guess?");
-                userGuess = userIn.next().substring(0, 1); 
+            String[] userGuess = new String[];
 
-                for (int i = 0; i < userGuessed.length; i++) {
-                    if (userGuess.equals(userGuessed[i])) {
-                        loopFlag = true;
-                        System.out.println(
-                                "You have entered a repeat guess. Please guess again.");
-                    }
-                }
-            } while (loopFlag);
+            String userGuess = collectUserGuess(userGuessed);
 
             for (int i = 0; i < userGuessed.length; i++) {
                 if (userGuessed[i] == null) {
