@@ -15,7 +15,7 @@ public class Main {
 
     public static void main(String[] args) {
         for (int i = 6; i < DATA_SIZE_LIMIT; i++) {
-            int dataSize = getPow(2, DATA_SIZE_LIMIT);
+            int dataSize = getPow(2, i);
             int[] randomData = generateData(dataSize);
 
             Sorter[] sorters = {new QuickSort(randomData), 
