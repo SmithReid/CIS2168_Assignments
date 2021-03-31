@@ -5,6 +5,6 @@ public class QuickSort extends Sorter {
     }
 
     public int[] run() {
-        ;
+        return this.data;
     }
 }

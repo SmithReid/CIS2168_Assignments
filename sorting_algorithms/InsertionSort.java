@@ -5,6 +5,6 @@ public class InsertionSort extends Sorter {
     }
 
     public int[] run() {
-        ;
+        return this.data;
     }
 }
