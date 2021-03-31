@@ -14,7 +14,7 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        for (int i = 6; i < DATA_SIZE_LIMIT; i++) {
+        for (int i = 6; i <= DATA_SIZE_LIMIT; i++) {
             int dataSize = getPow(2, i);
             int[] randomData = generateData(dataSize);
 
