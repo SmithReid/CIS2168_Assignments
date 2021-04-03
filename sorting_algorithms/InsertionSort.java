@@ -1,11 +1,24 @@
 public class InsertionSort extends Sorter {
-    public InsertionSort(int[] data) {
-        super();
+    public InsertionSort(double[] data) {
+        super(data);
         this.name = "InsertionSort";
     }
 
-    public int[] run() {
-        return this.data;
+    public void run() {
+        int n = data.length;
+        for (int i = 1; i < n; ++i) {
+            double key = data[i];
+            int j = i - 1;
+ 
+            // Move elements of arr[0..i-1], that are
+               // greater than key, to one position ahead
+               // of their current position
+            while (j >= 0 && data[j] > key) {
+                data[j + 1] = data[j];
+                j = j - 1;
+            }
+            data[j + 1] = key;
+        }
     }
 }
 

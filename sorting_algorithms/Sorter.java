@@ -1,16 +1,16 @@
 public class Sorter {
     String name = null;
-    int[] data;
+    double[] data;
 
     public Sorter() {
         ;
     }
 
-    public Sorter(int[] data) {
+    public Sorter(double[] data) {
         this.data = data;
     }
 
-    public int[] run() {
-        return this.data;
+    public void run() {
+        return;
     }
 }
