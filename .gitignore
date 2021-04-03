@@ -1,2 +1,4 @@
 *.class
 */text_files/*
+*.zip
+*.xlsx
