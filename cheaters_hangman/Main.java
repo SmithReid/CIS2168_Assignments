@@ -175,3 +175,16 @@ public class Main {
         }
     }
 }
+
+
+
+
+/*
+createWordFamily() returns HashMap<String, List<String>>
+    inputs: all current usable words, set of all letters guessed so far
+    for (word : dictionary) figure out what family the word belongs to
+    runs every turn
+
+getBestWordFamily() returns string, word family with the biggest list
+given the map, finds probably the largest word family
+*/
