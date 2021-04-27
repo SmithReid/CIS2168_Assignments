@@ -8,7 +8,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.LocalDateTime;
 
 public class Main {
-    private static final int DATA_SIZE_LIMIT = 14; // 2 ^ DATA_SIZE_LIMIT will be used
+    private static final int DATA_SIZE_LIMIT = 18; // 2 ^ DATA_SIZE_LIMIT will be used
 
     private static int getPow(int base, int exp) {
         int output = 1;
